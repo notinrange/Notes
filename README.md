@@ -613,3 +613,635 @@ arr.find(x => x.id === id)
 ---
 
 *These notes cover everything you need to write React comfortably. Practice each section with small examples and revisit when you hit confusion in React.*
+
+---
+
+# TypeScript for React
+> TypeScript = JavaScript + Types. Since you know C++, types will feel natural.
+
+---
+
+## Table of Contents (TS)
+17. [Why TypeScript](#17-why-typescript)
+18. [Basic Types](#18-basic-types)
+19. [Interfaces & Type Aliases](#19-interfaces--type-aliases)
+20. [Functions in TS](#20-functions-in-ts)
+21. [Arrays & Tuples](#21-arrays--tuples)
+22. [Union & Intersection Types](#22-union--intersection-types)
+23. [Optional & Readonly](#23-optional--readonly)
+24. [Generics](#24-generics)
+25. [Enums](#25-enums)
+26. [Type Assertions & Type Guards](#26-type-assertions--type-guards)
+27. [Typing React Components](#27-typing-react-components)
+28. [Typing Props](#28-typing-props)
+29. [Typing useState](#29-typing-usestate)
+30. [Typing useRef](#30-typing-useref)
+31. [Typing Events](#31-typing-events)
+32. [Typing API Responses](#32-typing-api-responses)
+33. [Utility Types](#33-utility-types)
+34. [TS + React Cheatsheet](#34-ts--react-cheatsheet)
+
+---
+
+## 17. Why TypeScript
+
+```cpp
+// In C++, this is a compile error:
+int x = "hello";  // ❌ caught at compile time
+```
+
+```js
+// In JS, this is silent:
+let x = 5;
+x = "hello";  // ✓ no error — bugs hide until runtime
+```
+
+```ts
+// In TS, this is caught immediately:
+let x: number = 5;
+x = "hello";  // ❌ Type 'string' is not assignable to type 'number'
+```
+
+> TypeScript gives you C++-like type safety in JavaScript. Since you already think in types, TS will feel comfortable.
+
+---
+
+## 18. Basic Types
+
+```ts
+// Primitives
+let name: string = "Rahul";
+let age: number = 25;          // covers int, float, double
+let isAdmin: boolean = true;
+
+// Any (avoid — defeats the purpose of TS)
+let data: any = "hello";
+data = 42;  // no error, but bad practice
+
+// Unknown (safer alternative to any)
+let input: unknown = getUserInput();
+if (typeof input === "string") {
+  input.toUpperCase();  // TS now knows it's a string
+}
+
+// Void (function returns nothing)
+function logMessage(msg: string): void {
+  console.log(msg);
+}
+
+// Never (function never returns — throws or infinite loops)
+function throwError(msg: string): never {
+  throw new Error(msg);
+}
+
+// Null & Undefined
+let val: null = null;
+let missing: undefined = undefined;
+
+// Literal types
+let direction: "left" | "right" | "up" | "down" = "left";
+let statusCode: 200 | 404 | 500 = 200;
+```
+
+---
+
+## 19. Interfaces & Type Aliases
+
+These are the most used TS features in React.
+
+### Interface
+```ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const user: User = { id: 1, name: "Rahul", email: "r@gmail.com" };
+```
+
+### Type Alias
+```ts
+type User = {
+  id: number;
+  name: string;
+  email: string;
+};
+```
+
+### Interface vs Type — when to use which?
+| | `interface` | `type` |
+|---|---|---|
+| Objects/shapes | ✅ preferred | ✅ works |
+| Can extend | ✅ `extends` | ✅ `&` intersection |
+| Union types | ❌ | ✅ only type can |
+| Primitives | ❌ | ✅ `type ID = string` |
+| React props | ✅ convention | ✅ both fine |
+
+> **Rule of thumb:** Use `interface` for object shapes (props, API responses). Use `type` for unions, primitives, and complex combos.
+
+### Extending Interface
+```ts
+interface Animal {
+  name: string;
+}
+
+interface Dog extends Animal {
+  breed: string;
+}
+
+const dog: Dog = { name: "Bruno", breed: "Labrador" };
+```
+
+### Extending Type (intersection)
+```ts
+type Animal = { name: string };
+type Dog = Animal & { breed: string };
+```
+
+---
+
+## 20. Functions in TS
+
+```ts
+// Parameter types + return type
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+// Arrow function
+const multiply = (a: number, b: number): number => a * b;
+
+// Optional parameter
+function greet(name: string, greeting?: string): string {
+  return `${greeting ?? "Hello"}, ${name}`;
+}
+
+// Default parameter
+function greet(name: string, greeting: string = "Hello"): string {
+  return `${greeting}, ${name}`;
+}
+
+// Function type
+type MathFn = (a: number, b: number) => number;
+const add: MathFn = (a, b) => a + b;
+```
+
+---
+
+## 21. Arrays & Tuples
+
+```ts
+// Arrays — two syntaxes (both identical)
+const nums: number[] = [1, 2, 3];
+const strs: Array<string> = ["a", "b", "c"];
+
+// Array of objects
+const users: User[] = [{ id: 1, name: "Rahul", email: "r@g.com" }];
+
+// Tuple — fixed length, fixed types (like std::pair in C++)
+const point: [number, number] = [10, 20];
+const entry: [string, number] = ["age", 25];
+
+// Named tuple
+const point: [x: number, y: number] = [10, 20];
+
+// useState returns a tuple — that's why you destructure it!
+const [count, setCount] = useState<number>(0);
+// count: number, setCount: (value: number) => void
+```
+
+---
+
+## 22. Union & Intersection Types
+
+### Union `|` — can be one of these types
+```ts
+// Like a type-safe version of a value that can vary
+type ID = string | number;
+let userId: ID = "abc123";
+userId = 42;  // also valid
+
+type Status = "loading" | "success" | "error";
+let apiStatus: Status = "loading";
+```
+
+### Intersection `&` — must satisfy ALL types
+```ts
+type HasName = { name: string };
+type HasAge  = { age: number };
+type Person  = HasName & HasAge;
+
+const p: Person = { name: "Rahul", age: 25 };  // must have both
+```
+
+---
+
+## 23. Optional & Readonly
+
+```ts
+interface User {
+  id: number;
+  name: string;
+  email?: string;          // optional — string | undefined
+  readonly createdAt: Date; // cannot be changed after creation
+}
+
+const user: User = { id: 1, name: "Rahul", createdAt: new Date() };
+user.email = "r@g.com";    // ✅ fine
+user.createdAt = new Date(); // ❌ Error: cannot assign to readonly
+```
+
+---
+
+## 24. Generics
+
+Like templates in C++. Write once, work for any type.
+
+```cpp
+// C++ template
+template<typename T>
+T getFirst(vector<T> arr) { return arr[0]; }
+```
+
+```ts
+// TS generic
+function getFirst<T>(arr: T[]): T {
+  return arr[0];
+}
+
+getFirst<number>([1, 2, 3]);   // returns number
+getFirst<string>(["a", "b"]);  // returns string
+getFirst([true, false]);        // TS infers boolean automatically
+```
+
+### Generic interface
+```ts
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+// Use for different API responses
+type UsersResponse = ApiResponse<User[]>;
+type ProductResponse = ApiResponse<Product>;
+```
+
+### Generic with constraint
+```ts
+// T must have a `length` property
+function logLength<T extends { length: number }>(val: T): void {
+  console.log(val.length);
+}
+
+logLength("hello");   // ✅
+logLength([1, 2, 3]); // ✅
+logLength(42);        // ❌ number has no length
+```
+
+---
+
+## 25. Enums
+
+```ts
+// Numeric enum (like C++)
+enum Direction {
+  Up,     // 0
+  Down,   // 1
+  Left,   // 2
+  Right   // 3
+}
+let dir: Direction = Direction.Up;
+
+// String enum ← preferred in React (readable in DevTools/logs)
+enum Status {
+  Loading = "LOADING",
+  Success = "SUCCESS",
+  Error   = "ERROR"
+}
+let status: Status = Status.Loading; // "LOADING"
+```
+
+> **Tip:** Many TS devs prefer `type Status = "loading" | "success" | "error"` over enums in React — it's simpler and works great.
+
+---
+
+## 26. Type Assertions & Type Guards
+
+### Type Assertion (like C++ cast)
+```ts
+// Tell TS "I know better"
+const input = document.getElementById("name") as HTMLInputElement;
+input.value;  // ✅ TS knows it's an input now
+
+// Alternative syntax (not usable in .tsx files!)
+const input = <HTMLInputElement>document.getElementById("name");
+```
+
+### Type Guards — narrow a union type
+```ts
+type Dog = { bark: () => void };
+type Cat = { meow: () => void };
+type Pet = Dog | Cat;
+
+// typeof guard
+function process(val: string | number) {
+  if (typeof val === "string") {
+    val.toUpperCase(); // TS knows it's string here
+  } else {
+    val.toFixed(2);    // TS knows it's number here
+  }
+}
+
+// instanceof guard
+if (error instanceof Error) {
+  console.log(error.message);
+}
+
+// Custom type guard
+function isDog(pet: Pet): pet is Dog {
+  return (pet as Dog).bark !== undefined;
+}
+
+if (isDog(myPet)) {
+  myPet.bark(); // ✅
+}
+```
+
+---
+
+## 27. Typing React Components
+
+```tsx
+// Functional Component — two ways
+
+// 1. Return type inferred (most common, recommended)
+const Button = ({ label }: { label: string }) => {
+  return <button>{label}</button>;
+};
+
+// 2. Explicit FC type (older style — some teams still use it)
+import { FC } from "react";
+const Button: FC<{ label: string }> = ({ label }) => {
+  return <button>{label}</button>;
+};
+```
+
+> **Tip:** Prefer letting TS infer the return type. Only add `: JSX.Element` or `: ReactNode` if you have a specific reason.
+
+---
+
+## 28. Typing Props
+
+```tsx
+// Define props interface separately (cleaner)
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean;
+  children?: React.ReactNode;  // anything renderable
+}
+
+const Button = ({ label, onClick, variant = "primary", disabled = false }: ButtonProps) => {
+  return (
+    <button onClick={onClick} disabled={disabled} className={variant}>
+      {label}
+    </button>
+  );
+};
+
+// Usage
+<Button label="Save" onClick={() => handleSave()} variant="primary" />
+```
+
+### Props with children
+```tsx
+interface CardProps {
+  title: string;
+  children: React.ReactNode;  // string, JSX, array, null — anything
+}
+
+const Card = ({ title, children }: CardProps) => (
+  <div>
+    <h2>{title}</h2>
+    {children}
+  </div>
+);
+```
+
+---
+
+## 29. Typing useState
+
+```tsx
+import { useState } from "react";
+
+// TS can infer simple types
+const [count, setCount] = useState(0);          // number
+const [name, setName] = useState("");           // string
+const [isOpen, setIsOpen] = useState(false);   // boolean
+
+// Be explicit for objects, arrays, unions
+const [user, setUser] = useState<User | null>(null);
+const [users, setUsers] = useState<User[]>([]);
+const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+
+// Update object state (always spread!)
+setUser(prev => ({ ...prev!, role: "admin" }));
+```
+
+---
+
+## 30. Typing useRef
+
+```tsx
+import { useRef } from "react";
+
+// DOM ref — type is the HTML element
+const inputRef = useRef<HTMLInputElement>(null);
+const divRef = useRef<HTMLDivElement>(null);
+
+// Access in JSX
+<input ref={inputRef} />
+
+// Access in handler
+const focusInput = () => {
+  inputRef.current?.focus();  // optional chaining — current can be null
+};
+
+// Mutable ref (store value without re-render)
+const timerRef = useRef<number | null>(null);
+timerRef.current = setTimeout(() => {}, 1000);
+```
+
+---
+
+## 31. Typing Events
+
+This trips up most people. Here are the ones you'll use daily:
+
+```tsx
+// Input change
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  setValue(e.target.value);
+};
+
+// Textarea change
+const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {};
+
+// Select change
+const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {};
+
+// Button click
+const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {};
+
+// Div click
+const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {};
+
+// Form submit
+const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+};
+
+// Keyboard
+const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === "Enter") { }
+};
+
+// Usage in JSX
+<input onChange={handleChange} onClick={handleClick} />
+```
+
+---
+
+## 32. Typing API Responses
+
+```ts
+// Define the shape of your API data
+interface Post {
+  id: number;
+  title: string;
+  body: string;
+  userId: number;
+}
+
+// Async function with typed return
+const fetchPost = async (id: number): Promise<Post> => {
+  const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
+
+// In component
+const [post, setPost] = useState<Post | null>(null);
+
+useEffect(() => {
+  fetchPost(1).then(setPost).catch(console.error);
+}, []);
+```
+
+---
+
+## 33. Utility Types
+
+TS ships with powerful built-in type transformers. Use these instead of rewriting types.
+
+```ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Partial — all fields optional (great for update payloads)
+type UserUpdate = Partial<User>;
+// { id?: number; name?: string; email?: string; password?: string }
+
+// Required — all fields required
+type FullUser = Required<UserUpdate>;
+
+// Pick — keep only selected fields
+type PublicUser = Pick<User, "id" | "name">;
+// { id: number; name: string }
+
+// Omit — remove selected fields
+type SafeUser = Omit<User, "password">;
+// { id: number; name: string; email: string }
+
+// Readonly — freeze all fields
+type FrozenUser = Readonly<User>;
+
+// Record — object with specific key/value types (like a map)
+type UserMap = Record<string, User>;
+const users: UserMap = { "u1": { id: 1, name: "Rahul", ... } };
+
+// ReturnType — extract return type of a function
+const getUser = () => ({ id: 1, name: "Rahul" });
+type UserFromFn = ReturnType<typeof getUser>;
+// { id: number; name: string }
+
+// Parameters — extract parameter types
+type AddParams = Parameters<typeof add>;  // [number, number]
+```
+
+---
+
+## 34. TS + React Cheatsheet
+
+```tsx
+// Props interface
+interface MyProps {
+  title: string;
+  count?: number;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+// Component
+const MyComponent = ({ title, count = 0, onClick, children }: MyProps) => {
+  // State
+  const [value, setValue] = useState<string>("");
+  const [data, setData] = useState<User | null>(null);
+
+  // Ref
+  const ref = useRef<HTMLInputElement>(null);
+
+  // Event handler
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input ref={ref} value={value} onChange={handleChange} />
+      <button onClick={onClick}>{title}</button>
+      {children}
+    </form>
+  );
+};
+
+export default MyComponent;
+```
+
+### Common HTML Element Types
+| Element | Type |
+|---|---|
+| `<input>` | `HTMLInputElement` |
+| `<button>` | `HTMLButtonElement` |
+| `<div>` | `HTMLDivElement` |
+| `<form>` | `HTMLFormElement` |
+| `<select>` | `HTMLSelectElement` |
+| `<textarea>` | `HTMLTextAreaElement` |
+| `<img>` | `HTMLImageElement` |
+| `<a>` | `HTMLAnchorElement` |
+
+---
+
+*With JS + TS mastered, you're fully equipped for React. The type system will save you hours of debugging.*
