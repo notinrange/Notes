@@ -137,10 +137,6 @@ fruits.includes("banana"); // true
 fruits.indexOf("mango");   // 2
 ```
 
----
-
-# 4. Arrays
-
 Arrays are ordered collections of values. Index starts at **0**.
 
 ```js
@@ -1505,5 +1501,81 @@ export default MyComponent;
 | `<a>` | `HTMLAnchorElement` |
 
 ---
+
+## 35. JavaScript Promise Methods — Quick Reference
+
+---
+
+## Promise.all() — All must succeed
+
+```js
+const [users, posts] = await Promise.all([fetchUsers(), fetchPosts()]);
+// ✅ all succeed → get all results
+// ❌ any one fails → throws immediately, rest ignored
+```
+
+**Use when:** all API calls are required and must succeed.
+
+---
+
+## Promise.allSettled() — Never fails
+
+```js
+const results = await Promise.allSettled([fetchUsers(), fetchPosts()]);
+
+results.forEach(result => {
+  if (result.status === "fulfilled") console.log(result.value);
+  if (result.status === "rejected")  console.log(result.reason);
+});
+// always returns result for every promise, success or fail
+```
+
+**Use when:** loading multiple widgets/sections, some can fail without breaking the page.
+
+---
+
+## Promise.race() — First to finish wins
+
+```js
+const result = await Promise.race([fetchAPI(), timeout(5000)]);
+// whichever resolves OR rejects first → that's your result
+// others are ignored
+```
+
+**Use when:** timeout logic — if API takes too long, cancel it.
+
+---
+
+## Promise.any() — First success wins
+
+```js
+const result = await Promise.any([server1(), server2(), server3()]);
+// ✅ returns first one that SUCCEEDS
+// ❌ throws only if ALL fail
+```
+
+**Use when:** trying multiple servers, use whichever responds first.
+
+---
+
+## Quick Reference Table
+
+| Method | Fails if | Returns | Use when |
+|---|---|---|---|
+| `Promise.all` | any one fails | all results in order | all calls must succeed |
+| `Promise.allSettled` | never fails | all results with status | some can fail, need all results |
+| `Promise.race` | first settles (fail or success) | first settled result | timeout logic |
+| `Promise.any` | all fail | first success | try multiple sources |
+
+---
+
+## Memory Trick
+
+```
+Promise.all         → all must win 🏆
+Promise.allSettled  → tell me everyone's result 📊
+Promise.race        → first to finish wins 🏎️
+Promise.any         → first to succeed wins 🎯
+```
 
 *With JS + TS mastered, you're fully equipped for React. The type system will save you hours of debugging.*
