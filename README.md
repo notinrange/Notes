@@ -139,6 +139,268 @@ fruits.indexOf("mango");   // 2
 
 ---
 
+# 4. Arrays
+
+Arrays are ordered collections of values. Index starts at **0**.
+
+```js
+const fruits = ["apple", "banana", "mango"];
+```
+
+---
+
+## Accessing Elements
+
+```js
+fruits[0];         // "apple"  → first element
+fruits[1];         // "banana" → second element
+fruits[2];         // "mango"  → third element
+fruits[fruits.length - 1]; // "mango" → last element
+```
+
+---
+
+## length
+
+Returns total number of elements in the array.
+
+```js
+fruits.length; // 3
+```
+
+---
+
+## push() — Add to End
+
+Adds one or more elements to the **end**. Modifies original array.
+
+```js
+fruits.push("grape");
+// ["apple", "banana", "mango", "grape"]
+
+fruits.push("grape", "kiwi"); // add multiple
+// ["apple", "banana", "mango", "grape", "kiwi"]
+```
+
+Returns → new length of array.
+
+---
+
+## pop() — Remove from End
+
+Removes the **last** element. Modifies original array.
+
+```js
+fruits.pop();
+// ["apple", "banana"]
+// returns "mango" ← the removed element
+```
+
+---
+
+## unshift() — Add to Start
+
+Adds one or more elements to the **beginning**. Modifies original array.
+
+```js
+fruits.unshift("kiwi");
+// ["kiwi", "apple", "banana", "mango"]
+
+fruits.unshift("kiwi", "grape"); // add multiple
+// ["kiwi", "grape", "apple", "banana", "mango"]
+```
+
+Returns → new length of array.
+
+---
+
+## shift() — Remove from Start
+
+Removes the **first** element. Modifies original array.
+
+```js
+fruits.shift();
+// ["banana", "mango"]
+// returns "apple" ← the removed element
+```
+
+---
+
+## includes() — Check if Exists
+
+Returns `true` or `false`.
+
+```js
+fruits.includes("banana"); // true
+fruits.includes("grapes"); // false
+
+// case sensitive
+fruits.includes("Apple"); // false
+fruits.includes("apple"); // true
+```
+
+---
+
+## indexOf() — Find Index of Element
+
+Returns the index of the element. Returns `-1` if not found.
+
+```js
+fruits.indexOf("mango");  // 2
+fruits.indexOf("apple");  // 0
+fruits.indexOf("grapes"); // -1 ← not found
+```
+
+---
+
+## slice() — Copy Part of Array
+
+Returns a **new array**. Does NOT modify original.
+
+```js
+const fruits = ["apple", "banana", "mango", "grape", "kiwi"];
+
+fruits.slice(1, 3);  // ["banana", "mango"] → from index 1 up to (not including) 3
+fruits.slice(2);     // ["mango", "grape", "kiwi"] → from index 2 to end
+fruits.slice(-2);    // ["grape", "kiwi"] → last 2 elements
+
+console.log(fruits); // ["apple", "banana", "mango", "grape", "kiwi"] ← unchanged
+```
+
+---
+
+## splice() — Remove / Add / Replace
+
+Modifies the **original array**. Also returns removed elements.
+
+**Syntax:**
+```js
+array.splice(startIndex, deleteCount, ...itemsToAdd)
+```
+
+**Remove elements:**
+```js
+const fruits = ["apple", "banana", "mango", "grape"];
+
+fruits.splice(1, 2);     // remove 2 elements starting at index 1
+// returns ["banana", "mango"] ← removed
+// fruits is now ["apple", "grape"]
+```
+
+**Add elements:**
+```js
+const fruits = ["apple", "banana", "mango"];
+
+fruits.splice(1, 0, "kiwi", "grape"); // at index 1, remove 0, add kiwi and grape
+// fruits is now ["apple", "kiwi", "grape", "banana", "mango"]
+```
+
+**Replace elements:**
+```js
+const fruits = ["apple", "banana", "mango"];
+
+fruits.splice(1, 1, "kiwi"); // at index 1, remove 1, add kiwi
+// fruits is now ["apple", "kiwi", "mango"]
+```
+
+---
+
+## find() and findIndex()
+
+```js
+const fruits = ["apple", "banana", "mango"];
+
+fruits.find(f => f === "banana");      // "banana" ← returns element
+fruits.findIndex(f => f === "banana"); // 1        ← returns index
+
+fruits.find(f => f === "grapes");      // undefined ← not found
+fruits.findIndex(f => f === "grapes"); // -1        ← not found
+```
+
+---
+
+## map() — Transform Every Element
+
+Returns a **new array**. Does NOT modify original.
+
+```js
+const fruits = ["apple", "banana", "mango"];
+
+const upper = fruits.map(f => f.toUpperCase());
+// ["APPLE", "BANANA", "MANGO"]
+
+console.log(fruits); // ["apple", "banana", "mango"] ← unchanged
+```
+
+---
+
+## filter() — Keep Matching Elements
+
+Returns a **new array** with only elements that pass the condition.
+
+```js
+const fruits = ["apple", "banana", "mango", "apricot"];
+
+const aFruits = fruits.filter(f => f.startsWith("a"));
+// ["apple", "apricot"]
+```
+
+---
+
+## forEach() — Loop Through Array
+
+Like a `for` loop. Does NOT return anything.
+
+```js
+const fruits = ["apple", "banana", "mango"];
+
+fruits.forEach((fruit, index) => {
+  console.log(index, fruit);
+});
+// 0 "apple"
+// 1 "banana"
+// 2 "mango"
+```
+
+---
+
+## reduce() — Combine Into Single Value
+
+```js
+const nums = [1, 2, 3, 4];
+
+const sum = nums.reduce((acc, num) => acc + num, 0);
+// 10
+
+const fruits = ["apple", "banana", "mango"];
+const fruitMap = fruits.reduce((acc, fruit) => {
+  acc[fruit] = fruit.length;
+  return acc;
+}, {});
+// { apple: 5, banana: 6, mango: 5 }
+```
+
+---
+
+## Quick Reference Table
+
+| Method | Modifies Original | Returns | Use When |
+|---|---|---|---|
+| `push()` | ✅ yes | new length | add to end |
+| `pop()` | ✅ yes | removed element | remove from end |
+| `unshift()` | ✅ yes | new length | add to start |
+| `shift()` | ✅ yes | removed element | remove from start |
+| `splice()` | ✅ yes | removed elements | remove/add/replace anywhere |
+| `slice()` | ❌ no | new array copy | copy part of array |
+| `includes()` | ❌ no | true/false | check if value exists |
+| `indexOf()` | ❌ no | index or -1 | find position of value |
+| `find()` | ❌ no | element or undefined | find element by condition |
+| `findIndex()` | ❌ no | index or -1 | find index by condition |
+| `map()` | ❌ no | new array | transform every element |
+| `filter()` | ❌ no | new array | keep matching elements |
+| `forEach()` | ❌ no | nothing | loop through array |
+| `reduce()` | ❌ no | single value | combine into one value |
+
 ## 5. Objects
 
 Think of JS objects like `structs` or `maps` in C++.
